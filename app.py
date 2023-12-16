@@ -17,40 +17,16 @@ def map_value(value, from_min, from_max, to_min, to_max):
     mapped_value = (value - from_min) / (from_max - from_min) * (to_max - to_min) + to_min
     
     return round(mapped_value,3)
-
-def move_onprem_logic(row):
+    
+def move_to_various_cloud(row):
     cpu_utilization=row[5]
     if row[1]=="On-prem":
-        return 1.0
-    
+        return[1.0,1.0+map_value(cpu_utilization,0,100,0.1,0.15),1.0+map_value(cpu_utilization,0,100,0.15,0.25)]
     if row[1]=="AWS":
-        return 1.0+map_value(cpu_utilization,0,100,0.1,0.15)
-    
+        return[1.0-map_value(cpu_utilization,0,100,0.1,0.15),1.0,1.0+map_value(cpu_utilization,0,100,0.1,0.15)]
     if row[1]=="GCP":
-        return 1.0+map_value(cpu_utilization,0,100,0.15,0.25)
-
-def move_aws_logic(row):
-    cpu_utilization=row[5]
-    if row[1]=="On-prem":
-        return 1.0-map_value(cpu_utilization,0,100,0.1,0.15)
+        return[1.0-map_value(cpu_utilization,0,100,0.15,0.25),1.0-map_value(cpu_utilization,0,100,0.05,0.15),1.0]
     
-    if row[1]=="AWS":
-        return 1.0
-    
-    if row[1]=="GCP":
-        return 1.0-map_value(cpu_utilization,0,100,0.08,0.15)
-
-def move_gcp_logic(row):
-    cpu_utilization=row[5]
-    if row[1]=="On-prem":
-        return 1.0-map_value(cpu_utilization,0,100,0.15,0.25)
-    
-    if row[1]=="AWS":
-        return 1.0-map_value(cpu_utilization,0,100,0.05,0.15)
-    
-    if row[1]=="GCP":
-        return 1.0
-
 def predict_using_model(input_csv_path):
     # Load the input CSV file
     input_data = pd.read_csv(input_csv_path)
@@ -63,11 +39,9 @@ def predict_using_model(input_csv_path):
 
     # Add predictions to the input datasheet
     input_data['Predictions'] = predictions
-    
-    # Add new columns and fill them based on your logic
-    input_data['move_onprem'] = input_data.apply(lambda row: move_onprem_logic(row), axis=1)
-    input_data['move_aws'] = input_data.apply(lambda row: move_aws_logic(row), axis=1)
-    input_data['move_gcp'] = input_data.apply(lambda row: move_gcp_logic(row), axis=1)
+    # create columns for movement logic
+    moved_data= input_data.apply(lambda row: move_to_various_cloud(row), axis=1)
+    input_data[['move_onprem', 'move_aws', 'move_gcp']] = pd.DataFrame(moved_data.tolist(), index=input_data.index)
 
     # Save the datasheet with predictions to a new CSV file
     output_csv_path = 'datasets/predicted.csv'

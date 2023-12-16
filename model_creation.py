@@ -10,7 +10,7 @@ import joblib  # Use joblib for model saving and loading
 data = pd.read_csv("datasets/dataset.csv")
 
 # Select relevant features for classification
-features = ['Cpu Utilization', 'Network Latency (milliseconds)']
+features = ['Cpu Utilization', 'Network Latency (milliseconds)','Average IOPS']
 X = data[features]
 y = data['classification']
 

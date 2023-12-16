@@ -16,7 +16,7 @@ def map_value(value, from_min, from_max, to_min, to_max):
     # Map the value from the source range to the destination range
     mapped_value = (value - from_min) / (from_max - from_min) * (to_max - to_min) + to_min
     
-    return mapped_value
+    return round(mapped_value,3)
 
 def move_onprem_logic(row):
     cpu_utilization=row[5]

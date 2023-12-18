@@ -27,6 +27,19 @@ def move_to_various_cloud(row):
     if row[1]=="GCP":
         return[1.0-map_value(cpu_utilization,0,100,0.15,0.25),1.0-map_value(cpu_utilization,0,100,0.05,0.15),1.0]
     
+def movement_related_calculation(row):
+    move_onprem=row[10]
+    cpu_utilization=row[5]
+    cost=row[7]
+    latency=row[6]
+    move_aws=row[11]
+    move_gcp=row[12]
+    if  row[1]!="On-prem":
+        if float(move_onprem)<0.78:
+            updated_latency=int(latency)+map_value(cpu_utilization,0,100,10,20)
+            return ["On-Prem",float(cost)*float(move_onprem),int(updated_latency)]
+    return ["No movement required",cost,latency]
+    
 def predict_using_model(input_csv_path):
     # Load the input CSV file
     input_data = pd.read_csv(input_csv_path)
@@ -43,6 +56,8 @@ def predict_using_model(input_csv_path):
     moved_data= input_data.apply(lambda row: move_to_various_cloud(row), axis=1)
     input_data[['move_onprem', 'move_aws', 'move_gcp']] = pd.DataFrame(moved_data.tolist(), index=input_data.index)
 
+    moved_data= input_data.apply(lambda row: movement_related_calculation(row), axis=1)
+    input_data[['where to move', 'Updated Cost','Updated latency']] = pd.DataFrame(moved_data.tolist(), index=input_data.index)
     # Save the datasheet with predictions to a new CSV file
     output_csv_path = 'datasets/predicted.csv'
     input_data.to_csv(output_csv_path, index=False)

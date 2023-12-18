@@ -2,12 +2,52 @@ from flask import Flask, request, jsonify
 import pandas as pd
 import joblib
 import io
+import matplotlib.pyplot as plt
+import os
 
 app = Flask(__name__)
 
 # Load the trained model and features
 loaded_classifier = joblib.load('model/decision_tree_model.joblib')
 loaded_features = joblib.load('model/model_features.joblib')
+
+
+def plot_costs_side_by_side(input_data, output_folder='graphs'):
+    # Create the output folder if it doesn't exist
+    os.makedirs(output_folder, exist_ok=True)
+
+    # Calculate the total cost and total updated cost
+    total_cost = input_data['Cost per Day ($)'].sum()
+    total_updated_cost = input_data['Updated Cost'].sum()
+
+    # Calculate the difference in cost
+    cost_difference = total_updated_cost - total_cost
+
+    # Create a bar graph for Total Cost and Updated Cost side by side
+    fig, ax = plt.subplots()
+    bar_width = 0.35
+
+    # Set positions for the bars
+    positions = [0, 1]  # Numeric positions for Total Cost and Total Updated Cost
+    bar1 = ax.bar(positions[0], total_cost, bar_width, label='Total Cost')
+    bar2 = ax.bar(positions[1], total_updated_cost, bar_width, label='Total Updated Cost')
+
+    # Set labels and title
+    ax.set_xlabel('Category')
+    ax.set_ylabel('Cost ($)')
+    ax.set_title('Total Cost vs Total Updated Cost')
+    ax.set_xticks(positions)
+    ax.set_xticklabels(['Total Cost', 'Total Updated Cost'])
+    ax.legend()
+
+    # Add a text annotation for the difference in cost
+    ax.text(positions[1], total_updated_cost + 1, f'Difference: {cost_difference:.2f}', ha='center', va='bottom', color='red')
+
+    # Save the plot to the output folder
+    output_path = os.path.join(output_folder, 'total_costs_side_by_side.png')
+    plt.savefig(output_path)
+    plt.close()  # Close the plot to avoid displaying it if not needed
+
 
 def map_value(value, from_min, from_max, to_min, to_max):
     # Ensure the value is within the source range
@@ -60,6 +100,9 @@ def predict_using_model(input_csv_path):
     input_data[['where to move', 'Updated Cost','Updated latency']] = pd.DataFrame(moved_data.tolist(), index=input_data.index)
     # Save the datasheet with predictions to a new CSV file
     output_csv_path = 'datasets/predicted.csv'
+    
+    # Plot costs and save the graph
+    plot_costs_side_by_side(input_data)
     input_data.to_csv(output_csv_path, index=False)
 
     return output_csv_path
@@ -93,4 +136,4 @@ def predict():
         return jsonify({'error': 'Please upload a valid CSV file'})
 
 if __name__ == '__main__':
-    app.run(port=3000, debug=True)
+    app.run(port=3500, debug=True)

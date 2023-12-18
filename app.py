@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify
 import pandas as pd
 import joblib
 import io
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import os
 
@@ -136,4 +138,4 @@ def predict():
         return jsonify({'error': 'Please upload a valid CSV file'})
 
 if __name__ == '__main__':
-    app.run(port=3500, debug=True)
+    app.run(port=3500, debug=False)

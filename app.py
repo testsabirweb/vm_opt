@@ -140,4 +140,4 @@ def predict():
         return jsonify({'error': 'Please upload a valid CSV file'})
 
 if __name__ == '__main__':
-    app.run(port=3500, debug=False)
+    app.run(port=3500, debug=True)

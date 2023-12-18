@@ -3,3 +3,4 @@ scikit-learn
 matplotlib
 flask
 joblib
+flask_cors

@@ -7,7 +7,9 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import os
 
+from flask_cors import CORS
 app = Flask(__name__)
+CORS(app)
 
 # Load the trained model and features
 loaded_classifier = joblib.load('model/decision_tree_model.joblib')

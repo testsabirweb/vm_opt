@@ -90,7 +90,7 @@ def movement_related_calculation(row):
         updated_cost=float(move_aws)
     if  row[1]!="On-prem":
         if updated_cost<=0.86 :
-            updated_latency=int(latency)+map_value(cpu_utilization,0,100,10,20)
+            updated_latency=int(latency)+map_value(cpu_utilization,0,100,-5,20)
             return [move_to,float(cost)*updated_cost,int(updated_latency)]
     return ["No movement required",cost,latency]
     

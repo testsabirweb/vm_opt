@@ -64,24 +64,34 @@ def map_value(value, from_min, from_max, to_min, to_max):
     
 def move_to_various_cloud(row):
     cpu_utilization=row[5]
+    latency=row[6]
     if row[1]=="On-prem":
         return[1.0,1.0+map_value(cpu_utilization,0,100,0.1,0.15),1.0+map_value(cpu_utilization,0,100,0.15,0.25)]
     if row[1]=="AWS":
         return[1.0-map_value(cpu_utilization,0,100,0.1,0.15),1.0,1.0+map_value(cpu_utilization,0,100,0.1,0.15)]
     if row[1]=="GCP":
-        return[1.0-map_value(cpu_utilization,0,100,0.15,0.25),1.0-map_value(cpu_utilization,0,100,0.05,0.15),1.0]
+        return[1.0-map_value(cpu_utilization,0,100,0.1,0.15),1.0-map_value(cpu_utilization,0,100,0.1,0.15)+map_value(latency,30,400,-0.08,0.5),1.0]
     
 def movement_related_calculation(row):
     move_onprem=row[10]
     cpu_utilization=row[5]
     cost=row[7]
+    updated_cost=1
     latency=row[6]
     move_aws=row[11]
     move_gcp=row[12]
+    move_to="No movement required"
+    mini=1
+    if float(move_onprem)<float(move_aws):
+        move_to="On-Prem"
+        updated_cost=float(move_onprem)
+    else:
+        move_to="AWS"
+        updated_cost=float(move_aws)
     if  row[1]!="On-prem":
-        if float(move_onprem)<0.78:
+        if updated_cost<=0.86 :
             updated_latency=int(latency)+map_value(cpu_utilization,0,100,10,20)
-            return ["On-Prem",float(cost)*float(move_onprem),int(updated_latency)]
+            return [move_to,float(cost)*updated_cost,int(updated_latency)]
     return ["No movement required",cost,latency]
     
 def predict_using_model(input_csv_path):

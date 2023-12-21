@@ -6,6 +6,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import os
+import base64
 
 from flask_cors import CORS
 app = Flask(__name__)
@@ -15,6 +16,49 @@ CORS(app)
 loaded_classifier = joblib.load('model/decision_tree_model.joblib')
 loaded_features = joblib.load('model/model_features.joblib')
 
+def plot_count_before_movement(input_data, output_folder='graphs'):
+    os.makedirs(output_folder, exist_ok=True)
+
+    # Count the number of VMs in each cloud before movement
+    count_before_movement = input_data['cloud provider'].value_counts()
+
+    # Define colors for each cloud provider
+    colors = {'On-prem': 'blue', 'AWS': 'orange', 'GCP': 'green'}
+
+    # Create a pie chart with specified colors
+    plt.figure(figsize=(8, 8))
+    plt.pie(count_before_movement, labels=count_before_movement.index, autopct='%1.1f%%', startangle=90, colors=[colors.get(provider, 'gray') for provider in count_before_movement.index])
+    plt.title('Count of VMs in Different Clouds Before Movement')
+
+    # Save the plot to the output folder
+    output_path = os.path.join(output_folder, 'count_before_movement_pie_chart.png')
+    plt.savefig(output_path)
+    plt.close()
+
+def plot_count_after_movement(input_data, output_folder='graphs'):
+    os.makedirs(output_folder, exist_ok=True)
+
+    # Create a copy of the input data to avoid modifying the original DataFrame
+    modified_data = input_data.copy()
+
+    # Update the cloud provider for VMs where no movement is required
+    modified_data.loc[modified_data['where to move'] == 'No movement required', 'where to move'] = modified_data.loc[modified_data['where to move'] == 'No movement required', 'cloud provider']
+
+    # Count the number of VMs in each cloud after movement
+    count_after_movement = modified_data['where to move'].value_counts()
+
+    # Define colors for each cloud provider
+    colors = {'On-prem': 'blue', 'AWS': 'orange', 'GCP': 'green'}
+
+    # Create a pie chart with specified colors
+    plt.figure(figsize=(8, 8))
+    plt.pie(count_after_movement, labels=count_after_movement.index, autopct='%1.1f%%', startangle=90, colors=[colors.get(provider, 'gray') for provider in count_after_movement.index])
+    plt.title('Count of VMs in Different Clouds After Movement')
+
+    # Save the plot to the output folder
+    output_path = os.path.join(output_folder, 'count_after_movement_pie_chart.png')
+    plt.savefig(output_path)
+    plt.close()
 
 def plot_costs_side_by_side(input_data, output_folder='graphs'):
     # Create the output folder if it doesn't exist
@@ -81,9 +125,8 @@ def movement_related_calculation(row):
     move_aws=row[11]
     move_gcp=row[12]
     move_to="No movement required"
-    mini=1
     if float(move_onprem)<float(move_aws):
-        move_to="On-Prem"
+        move_to="On-prem"
         updated_cost=float(move_onprem)
     else:
         move_to="AWS"
@@ -115,8 +158,13 @@ def predict_using_model(input_csv_path):
     # Save the datasheet with predictions to a new CSV file
     output_csv_path = 'datasets/predicted.csv'
     
-    # Plot costs and save the graph
+    # Plot and save the graph
     plot_costs_side_by_side(input_data)
+    
+    plot_count_before_movement(input_data)
+    
+    plot_count_after_movement(input_data)
+    
     input_data.to_csv(output_csv_path, index=False)
 
     return output_csv_path
@@ -143,7 +191,15 @@ def predict():
 
         # Convert the DataFrame to JSON for the API response
         predicted_json = predicted_data.to_json(orient='records')
+        
+        # # Read and encode the graph file content as base64
+        # graph_cost_path = 'graphs/total_costs_side_by_side.png'
+        # with open(graph_cost_path, 'rb') as image_file:
+        #     encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
 
+        # # Send both the generated graphs and predictions as a response
+        # return jsonify({'success': True, 'data': predicted_json, 'graph_cost_path': encoded_image})
+        
         return jsonify({'success': True, 'data': predicted_json})
 
     else:

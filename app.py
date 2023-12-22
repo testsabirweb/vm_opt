@@ -96,8 +96,8 @@ def plot_costs_side_by_side(input_data, output_folder='graphs'):
     bar2 = ax.bar(positions[1], total_updated_cost, bar_width, label='Total Updated Cost', color='#486DE8')  # Specify color for the bar
 
     # Set labels and title
-    ax.set_xlabel('Category')
-    ax.set_ylabel('Cost ($)')
+    ax.set_xlabel('Category',color='black')
+    ax.set_ylabel('Cost ($)',color='white')
     ax.set_title('Total Cost vs Total Updated Cost', fontsize=22, color='white')  # Set title text color
     ax.set_xticks(positions)
     ax.set_xticklabels(['Total Cost', 'Total Updated Cost'], fontsize=18,color='white')  # Set font size for x-axis labels

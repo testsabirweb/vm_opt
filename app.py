@@ -7,6 +7,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import os
 import base64
+import seaborn as sns
 
 from flask_cors import CORS
 app = Flask(__name__)
@@ -23,18 +24,25 @@ def plot_count_before_movement(input_data, output_folder='graphs'):
     count_before_movement = input_data['cloud provider'].value_counts()
 
     # Define colors for each cloud provider
-    colors = {'On-prem': 'blue', 'AWS': 'orange', 'GCP': 'green'}
+    colors = {'On-prem': '#018977', 'AWS': '#cf59c7', 'GCP': '#486DE8'}
+
+    # Set seaborn style to dark
+    sns.set(style='darkgrid')
 
     # Create a pie chart with specified colors
-    plt.figure(figsize=(8, 8))
-    plt.pie(count_before_movement, labels=count_before_movement.index, autopct='%1.1f%%', startangle=90, colors=[colors.get(provider, 'gray') for provider in count_before_movement.index])
-    plt.title('Count of VMs in Different Clouds Before Movement')
+    fig, ax = plt.subplots(figsize=(8, 8))
+    ax.pie(count_before_movement, labels=count_before_movement.index, autopct='%1.1f%%', startangle=90, colors=[colors.get(provider, 'gray') for provider in count_before_movement.index],
+           textprops={'color': 'white', 'fontsize': 24})  # Set text color to white and adjust font size
+    ax.set_title('Count of VMs in Different Clouds Before Movement', fontsize=22, color='white')  # Set title text color
+
+    # Set the background color to black
+    fig.set_facecolor('black')
 
     # Save the plot to the output folder
     output_path = os.path.join(output_folder, 'count_before_movement_pie_chart.png')
     plt.savefig(output_path)
     plt.close()
-
+    
 def plot_count_after_movement(input_data, output_folder='graphs'):
     os.makedirs(output_folder, exist_ok=True)
 
@@ -48,12 +56,19 @@ def plot_count_after_movement(input_data, output_folder='graphs'):
     count_after_movement = modified_data['where to move'].value_counts()
 
     # Define colors for each cloud provider
-    colors = {'On-prem': 'blue', 'AWS': 'orange', 'GCP': 'green'}
+    colors = {'On-prem': '#018977', 'AWS': '#cf59c7', 'GCP': '#486DE8'}
+
+    # Set seaborn style to dark
+    sns.set(style='darkgrid')
 
     # Create a pie chart with specified colors
-    plt.figure(figsize=(8, 8))
-    plt.pie(count_after_movement, labels=count_after_movement.index, autopct='%1.1f%%', startangle=90, colors=[colors.get(provider, 'gray') for provider in count_after_movement.index])
-    plt.title('Count of VMs in Different Clouds After Movement')
+    fig, ax = plt.subplots(figsize=(8, 8))
+    ax.pie(count_after_movement, labels=count_after_movement.index, autopct='%1.1f%%', startangle=90, colors=[colors.get(provider, 'gray') for provider in count_after_movement.index],
+           textprops={'color': 'white', 'fontsize': 24})  # Set text color to white and adjust font size
+    ax.set_title('Count of VMs in Different Clouds After Movement', fontsize=22, color='white')  # Set title text color
+
+    # Set the background color to black
+    fig.set_facecolor('black')
 
     # Save the plot to the output folder
     output_path = os.path.join(output_folder, 'count_after_movement_pie_chart.png')
@@ -77,19 +92,23 @@ def plot_costs_side_by_side(input_data, output_folder='graphs'):
 
     # Set positions for the bars
     positions = [0, 1]  # Numeric positions for Total Cost and Total Updated Cost
-    bar1 = ax.bar(positions[0], total_cost, bar_width, label='Total Cost')
-    bar2 = ax.bar(positions[1], total_updated_cost, bar_width, label='Total Updated Cost')
+    bar1 = ax.bar(positions[0], total_cost, bar_width, label='Total Cost', color='#018977')  # Specify color for the bar
+    bar2 = ax.bar(positions[1], total_updated_cost, bar_width, label='Total Updated Cost', color='#486DE8')  # Specify color for the bar
 
     # Set labels and title
     ax.set_xlabel('Category')
     ax.set_ylabel('Cost ($)')
-    ax.set_title('Total Cost vs Total Updated Cost')
+    ax.set_title('Total Cost vs Total Updated Cost', fontsize=22, color='white')  # Set title text color
     ax.set_xticks(positions)
-    ax.set_xticklabels(['Total Cost', 'Total Updated Cost'])
+    ax.set_xticklabels(['Total Cost', 'Total Updated Cost'], fontsize=18,color='white')  # Set font size for x-axis labels
     ax.legend()
 
     # Add a text annotation for the difference in cost
-    ax.text(positions[1], total_updated_cost + 1, f'Difference: {cost_difference:.2f}', ha='center', va='bottom', color='red')
+    ax.text(positions[1], total_updated_cost + 1, f'Difference: {cost_difference:.2f}', ha='center', va='bottom', color='red', fontsize=22)  # Set font size for text annotation
+
+    # Set the background color to black
+    ax.set_facecolor('black')
+    fig.set_facecolor('black')
 
     # Save the plot to the output folder
     output_path = os.path.join(output_folder, 'total_costs_side_by_side.png')

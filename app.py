@@ -104,7 +104,7 @@ def plot_costs_side_by_side(input_data, output_folder='graphs'):
     ax.legend()
 
     # Add a text annotation for the difference in cost
-    ax.text(positions[1], total_updated_cost + 1, f'Difference: {cost_difference:.2f}', ha='center', va='bottom', color='red', fontsize=22)  # Set font size for text annotation
+    ax.text(positions[1], total_updated_cost + 1, f'Difference: {cost_difference:.2f} $', ha='center', va='bottom', color='#e3646c', fontsize=18)  # Set font size for text annotation
 
     # Set the background color to black
     ax.set_facecolor('black')

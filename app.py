@@ -192,15 +192,23 @@ def predict():
         # Convert the DataFrame to JSON for the API response
         predicted_json = predicted_data.to_json(orient='records')
         
-        # # Read and encode the graph file content as base64
-        # graph_cost_path = 'graphs/total_costs_side_by_side.png'
-        # with open(graph_cost_path, 'rb') as image_file:
-        #     encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
+        # Read and encode the graph file content as base64
+        graph_cost_path = 'graphs/total_costs_side_by_side.png'
+        with open(graph_cost_path, 'rb') as image_file:
+            encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
+            
+        # Read and encode the graph file content as base64
+        pie_before = 'graphs/count_before_movement_pie_chart.png'
+        with open(pie_before, 'rb') as image_file:
+            pie_before_encoded = base64.b64encode(image_file.read()).decode('utf-8')
+            
+        # Read and encode the graph file content as base64
+        pie_before = 'graphs/count_after_movement_pie_chart.png'
+        with open(pie_before, 'rb') as image_file:
+            pie_after_encoded = base64.b64encode(image_file.read()).decode('utf-8')
 
-        # # Send both the generated graphs and predictions as a response
-        # return jsonify({'success': True, 'data': predicted_json, 'graph_cost_path': encoded_image})
-        
-        return jsonify({'success': True, 'data': predicted_json})
+        # Send both the generated graphs and predictions as a response
+        return jsonify({'success': True, 'data': predicted_json, 'graph_cost_path': encoded_image,'pie_before':pie_before_encoded,'pie_after':pie_after_encoded})
 
     else:
         return jsonify({'error': 'Please upload a valid CSV file'})

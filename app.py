@@ -86,8 +86,12 @@ def predict_using_model(input_csv_path):
         lambda row: movement_related_calculation(row), axis=1)
     input_data[['where to move', 'Updated Cost', 'Updated latency']
                ] = pd.DataFrame(moved_data.tolist(), index=input_data.index)
+
     # Save the datasheet with predictions to a new CSV file
-    return input_data
+    output_csv_path = 'datasets/predicted.csv'    
+    input_data.to_csv(output_csv_path, index=False)
+
+    return output_csv_path
 
 
 def get_count_of_cloud(data):
@@ -96,7 +100,7 @@ def get_count_of_cloud(data):
 
     for index, row in data.iterrows():
         cloud_provider = row['cloud provider']
-        total_cost = float(row['Updated Cost'])
+        total_cost = float(row['Cost Per Year ($)'])
 
         # Initialize count and cost for the cloud provider if not present
         if cloud_provider not in cloud_count:
@@ -148,12 +152,13 @@ def predict():
         file.save(file_path)
 
         # Perform analysis using the trained model
-        data = predict_using_model(file_path)
+        # Read the predicted CSV file content
+        data = pd.read_csv(predict_using_model(file_path))
 
         first_page_data = get_count_of_cloud(data)
 
         second_page_data = dict()
-        second_page_data["filter_vm_based_on_cloud"] = filter_vm_based_on_cloud(
+        second_page_data["filtered_vms_based_on_cloud"] = filter_vm_based_on_cloud(
             data)
 
         # TODO : convert data to json data

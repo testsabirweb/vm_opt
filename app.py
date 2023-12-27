@@ -1,15 +1,16 @@
+from flask_cors import CORS
+import seaborn as sns
+import base64
+import os
+import matplotlib.pyplot as plt
 from flask import Flask, request, jsonify
 import pandas as pd
 import joblib
 import io
+import json
 import matplotlib
 matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import os
-import base64
-import seaborn as sns
 
-from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
@@ -17,46 +18,52 @@ CORS(app)
 loaded_classifier = joblib.load('model/decision_tree_model.joblib')
 loaded_features = joblib.load('model/model_features.joblib')
 
+
 def map_value(value, from_min, from_max, to_min, to_max):
     # Ensure the value is within the source range
     value = max(min(value, from_max), from_min)
-    
+
     # Map the value from the source range to the destination range
-    mapped_value = (value - from_min) / (from_max - from_min) * (to_max - to_min) + to_min
-    
-    return round(mapped_value,3)
-    
+    mapped_value = (value - from_min) / (from_max -
+                                         from_min) * (to_max - to_min) + to_min
+
+    return round(mapped_value, 3)
+
+
 def move_to_various_cloud(row):
-    cpu_utilization=row[5]
-    latency=row[6]
-    if row[1]=="On-prem":
-        return[1.0,1.0+map_value(cpu_utilization,0,100,0.1,0.15),1.0+map_value(cpu_utilization,0,100,0.15,0.25)]
-    if row[1]=="AWS":
-        return[1.0-map_value(cpu_utilization,0,100,0.1,0.15),1.0,1.0+map_value(cpu_utilization,0,100,0.1,0.15)]
-    if row[1]=="GCP":
-        return[1.0-map_value(cpu_utilization,0,100,0.1,0.15),1.0-map_value(cpu_utilization,0,100,0.1,0.15)+map_value(latency,30,400,-0.08,0.5),1.0]
-    
+    cpu_utilization = row[5]
+    latency = row[6]
+    if row[1] == "On-prem":
+        return [1.0, 1.0+map_value(cpu_utilization, 0, 100, 0.1, 0.15), 1.0+map_value(cpu_utilization, 0, 100, 0.15, 0.25)]
+    if row[1] == "AWS":
+        return [1.0-map_value(cpu_utilization, 0, 100, 0.1, 0.15), 1.0, 1.0+map_value(cpu_utilization, 0, 100, 0.1, 0.15)]
+    if row[1] == "GCP":
+        return [1.0-map_value(cpu_utilization, 0, 100, 0.1, 0.15), 1.0-map_value(cpu_utilization, 0, 100, 0.1, 0.15)+map_value(latency, 30, 400, -0.08, 0.5), 1.0]
+
+
 def movement_related_calculation(row):
-    move_onprem=row[10]
-    cpu_utilization=row[5]
-    cost=row[7]
-    updated_cost=1
-    latency=row[6]
-    move_aws=row[11]
-    move_gcp=row[12]
-    move_to="No movement required"
-    if float(move_onprem)<float(move_aws):
-        move_to="On-prem"
-        updated_cost=float(move_onprem)
+    move_onprem = row[10]
+    cpu_utilization = row[5]
+    cost = row[7]
+    updated_cost = 1
+    latency = row[6]
+    move_aws = row[11]
+    move_gcp = row[12]
+    move_to = "No movement required"
+    if float(move_onprem) < float(move_aws):
+        move_to = "On-prem"
+        updated_cost = float(move_onprem)
     else:
-        move_to="AWS"
-        updated_cost=float(move_aws)
-    if  row[1]!="On-prem":
-        if updated_cost<=0.86 :
-            updated_latency=int(latency)+map_value(cpu_utilization,0,100,-5,20)
-            return [move_to,float(cost)*updated_cost,int(updated_latency)]
-    return ["No movement required",cost,latency]
-    
+        move_to = "AWS"
+        updated_cost = float(move_aws)
+    if row[1] != "On-prem":
+        if updated_cost <= 0.86:
+            updated_latency = int(latency) + \
+                map_value(cpu_utilization, 0, 100, -5, 20)
+            return [move_to, float(cost)*updated_cost, int(updated_latency)]
+    return ["No movement required", cost, latency]
+
+
 def predict_using_model(input_csv_path):
     # Load the input CSV file
     input_data = pd.read_csv(input_csv_path)
@@ -70,13 +77,18 @@ def predict_using_model(input_csv_path):
     # Add predictions to the input datasheet
     input_data['Predictions'] = predictions
     # create columns for movement logic
-    moved_data= input_data.apply(lambda row: move_to_various_cloud(row), axis=1)
-    input_data[['move_onprem', 'move_aws', 'move_gcp']] = pd.DataFrame(moved_data.tolist(), index=input_data.index)
+    moved_data = input_data.apply(
+        lambda row: move_to_various_cloud(row), axis=1)
+    input_data[['move_onprem', 'move_aws', 'move_gcp']] = pd.DataFrame(
+        moved_data.tolist(), index=input_data.index)
 
-    moved_data= input_data.apply(lambda row: movement_related_calculation(row), axis=1)
-    input_data[['where to move', 'Updated Cost','Updated latency']] = pd.DataFrame(moved_data.tolist(), index=input_data.index)
+    moved_data = input_data.apply(
+        lambda row: movement_related_calculation(row), axis=1)
+    input_data[['where to move', 'Updated Cost', 'Updated latency']
+               ] = pd.DataFrame(moved_data.tolist(), index=input_data.index)
     # Save the datasheet with predictions to a new CSV file
     return input_data
+
 
 def get_count_of_cloud(data):
     cloud_count = {}
@@ -96,12 +108,30 @@ def get_count_of_cloud(data):
         cloud_cost[cloud_provider] += total_cost
 
     # Round the total cost to 2 digits
-    rounded_cloud_cost = {provider: round(cost, 2) for provider, cost in cloud_cost.items()}
+    rounded_cloud_cost = {provider: round(
+        cost, 2) for provider, cost in cloud_cost.items()}
 
     # Create a dictionary to hold the result
-    result = {'cloud_count': cloud_count, 'cloud_total_cost': rounded_cloud_cost}
+    result = {'cloud_count': cloud_count,
+              'cloud_total_cost': rounded_cloud_cost}
     return result
 
+
+def filter_vm_based_on_cloud(data):
+    aws_data = data[data['cloud provider'] == 'AWS'].head(
+        5).to_dict(orient='records')
+    onprem_data = data[data['cloud provider'] ==
+                       'On-prem'].head(5).to_dict(orient='records')
+    gcp_data = data[data['cloud provider'] == 'GCP'].head(
+        5).to_dict(orient='records')
+
+    result = {
+        'AWS': json.loads(json.dumps(aws_data)),
+        'On-prem': json.loads(json.dumps(onprem_data)),
+        'GCP': json.loads(json.dumps(gcp_data)),
+    }
+
+    return result
 
 @app.route('/api/predict', methods=['POST'])
 def predict():
@@ -119,16 +149,23 @@ def predict():
 
         # Perform analysis using the trained model
         data = predict_using_model(file_path)
-        
-        first_page_data=get_count_of_cloud(data)
-        
+
+        first_page_data = get_count_of_cloud(data)
+
+        second_page_data = dict()
+        second_page_data["filter_vm_based_on_cloud"] = filter_vm_based_on_cloud(
+            data)
 
         # TODO : convert data to json data
         # Send both the generated graphs and predictions as a response
-        return jsonify({'success': True, 'first_page_data': first_page_data})
+        return jsonify({'success': True,
+                        'first_page_data': first_page_data,
+                        'second_page_data': second_page_data
+                        })
 
     else:
         return jsonify({'error': 'Please upload a valid CSV file'})
+
 
 if __name__ == '__main__':
     app.run(port=3500, debug=True)

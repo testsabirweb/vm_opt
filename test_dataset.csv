@@ -23,4 +23,4 @@ id,cloud provider,Total Ram,Total CPU,Total Disk Space (GB),Cpu Utilization,Netw
 22,GCP,16,8,16,80.76,126,1059.4,843
 23,GCP,64,16,32,90.1,111,3344.8,1208
 24,AWS,64,16,32,45.96,47,3344,1337
-25,On-prem,64,16,32,60.03,102,2667.6,1213
+25,On-prem,64,16,32,59.03,102,2667.6,1213

@@ -23,4 +23,4 @@ id,cloud provider,Total Ram,Total CPU,Total Disk Space (GB),Cpu Utilization,Netw
 22,GCP,16,8,16,80.76,126,1059.4,843,overutilized,0.86,0.9299999999999999,1.0,On-prem,911.0840000000001,141
 23,GCP,64,16,32,90.1,111,3344.8,1208,overutilized,0.855,0.902,1.0,On-prem,2859.804,128
 24,AWS,64,16,32,45.96,47,3344.0,1337,underutilized,0.877,1.0,1.123,No movement required,3344.0,47
-25,On-prem,64,16,32,60.03,102,2667.6,1213,optimal,1.0,1.13,1.21,No movement required,2667.6,102
+25,On-prem,64,16,32,59.03,102,2667.6,1213,underutilized,1.0,1.13,1.209,No movement required,2667.6,102

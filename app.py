@@ -17,105 +17,6 @@ CORS(app)
 loaded_classifier = joblib.load('model/decision_tree_model.joblib')
 loaded_features = joblib.load('model/model_features.joblib')
 
-def plot_count_before_movement(input_data, output_folder='graphs'):
-    os.makedirs(output_folder, exist_ok=True)
-
-    # Count the number of VMs in each cloud before movement
-    count_before_movement = input_data['cloud provider'].value_counts()
-
-    # Define colors for each cloud provider
-    colors = {'On-prem': '#018977', 'AWS': '#cf59c7', 'GCP': '#486DE8'}
-
-    # Set seaborn style to dark
-    sns.set(style='darkgrid')
-
-    # Create a pie chart with specified colors
-    fig, ax = plt.subplots(figsize=(8, 8))
-    ax.pie(count_before_movement, labels=count_before_movement.index, autopct='%1.1f%%', startangle=90, colors=[colors.get(provider, 'gray') for provider in count_before_movement.index],
-           textprops={'color': 'white', 'fontsize': 24})  # Set text color to white and adjust font size
-    ax.set_title('Count of VMs in Different Clouds Before Movement', fontsize=22, color='white')  # Set title text color
-
-    # Set the background color to black
-    fig.set_facecolor('black')
-
-    # Save the plot to the output folder
-    output_path = os.path.join(output_folder, 'count_before_movement_pie_chart.png')
-    plt.savefig(output_path)
-    plt.close()
-    
-def plot_count_after_movement(input_data, output_folder='graphs'):
-    os.makedirs(output_folder, exist_ok=True)
-
-    # Create a copy of the input data to avoid modifying the original DataFrame
-    modified_data = input_data.copy()
-
-    # Update the cloud provider for VMs where no movement is required
-    modified_data.loc[modified_data['where to move'] == 'No movement required', 'where to move'] = modified_data.loc[modified_data['where to move'] == 'No movement required', 'cloud provider']
-
-    # Count the number of VMs in each cloud after movement
-    count_after_movement = modified_data['where to move'].value_counts()
-
-    # Define colors for each cloud provider
-    colors = {'On-prem': '#018977', 'AWS': '#cf59c7', 'GCP': '#486DE8'}
-
-    # Set seaborn style to dark
-    sns.set(style='darkgrid')
-
-    # Create a pie chart with specified colors
-    fig, ax = plt.subplots(figsize=(8, 8))
-    ax.pie(count_after_movement, labels=count_after_movement.index, autopct='%1.1f%%', startangle=90, colors=[colors.get(provider, 'gray') for provider in count_after_movement.index],
-           textprops={'color': 'white', 'fontsize': 24})  # Set text color to white and adjust font size
-    ax.set_title('Count of VMs in Different Clouds After Movement', fontsize=22, color='white')  # Set title text color
-
-    # Set the background color to black
-    fig.set_facecolor('black')
-
-    # Save the plot to the output folder
-    output_path = os.path.join(output_folder, 'count_after_movement_pie_chart.png')
-    plt.savefig(output_path)
-    plt.close()
-
-def plot_costs_side_by_side(input_data, output_folder='graphs'):
-    # Create the output folder if it doesn't exist
-    os.makedirs(output_folder, exist_ok=True)
-
-    # Calculate the total cost and total updated cost
-    total_cost = input_data['Cost per Day ($)'].sum()
-    total_updated_cost = input_data['Updated Cost'].sum()
-
-    # Calculate the difference in cost
-    cost_difference = total_updated_cost - total_cost
-
-    # Create a bar graph for Total Cost and Updated Cost side by side
-    fig, ax = plt.subplots()
-    bar_width = 0.35
-
-    # Set positions for the bars
-    positions = [0, 1]  # Numeric positions for Total Cost and Total Updated Cost
-    bar1 = ax.bar(positions[0], total_cost, bar_width, label='Total Cost', color='#018977')  # Specify color for the bar
-    bar2 = ax.bar(positions[1], total_updated_cost, bar_width, label='Total Updated Cost', color='#486DE8')  # Specify color for the bar
-
-    # Set labels and title
-    ax.set_xlabel('Category',color='black')
-    ax.set_ylabel('Cost ($)',color='white')
-    ax.set_title('Total Cost vs Total Updated Cost', fontsize=22, color='white')  # Set title text color
-    ax.set_xticks(positions)
-    ax.set_xticklabels(['Total Cost', 'Total Updated Cost'], fontsize=18,color='white')  # Set font size for x-axis labels
-    ax.legend()
-
-    # Add a text annotation for the difference in cost
-    ax.text(positions[1], total_updated_cost + 1, f'Difference: {cost_difference:.2f} $', ha='center', va='bottom', color='#e3646c', fontsize=18)  # Set font size for text annotation
-
-    # Set the background color to black
-    ax.set_facecolor('black')
-    fig.set_facecolor('black')
-
-    # Save the plot to the output folder
-    output_path = os.path.join(output_folder, 'total_costs_side_by_side.png')
-    plt.savefig(output_path)
-    plt.close()  # Close the plot to avoid displaying it if not needed
-
-
 def map_value(value, from_min, from_max, to_min, to_max):
     # Ensure the value is within the source range
     value = max(min(value, from_max), from_min)
@@ -175,18 +76,32 @@ def predict_using_model(input_csv_path):
     moved_data= input_data.apply(lambda row: movement_related_calculation(row), axis=1)
     input_data[['where to move', 'Updated Cost','Updated latency']] = pd.DataFrame(moved_data.tolist(), index=input_data.index)
     # Save the datasheet with predictions to a new CSV file
-    output_csv_path = 'datasets/predicted.csv'
-    
-    # Plot and save the graph
-    plot_costs_side_by_side(input_data)
-    
-    plot_count_before_movement(input_data)
-    
-    plot_count_after_movement(input_data)
-    
-    input_data.to_csv(output_csv_path, index=False)
+    return input_data
 
-    return output_csv_path
+def get_count_of_cloud(data):
+    cloud_count = {}
+    cloud_cost = {}
+
+    for index, row in data.iterrows():
+        cloud_provider = row['cloud provider']
+        total_cost = float(row['Updated Cost'])
+
+        # Initialize count and cost for the cloud provider if not present
+        if cloud_provider not in cloud_count:
+            cloud_count[cloud_provider] = 0
+            cloud_cost[cloud_provider] = 0.0
+
+        # Increment the count and add to the total cost
+        cloud_count[cloud_provider] += 1
+        cloud_cost[cloud_provider] += total_cost
+
+    # Round the total cost to 2 digits
+    rounded_cloud_cost = {provider: round(cost, 2) for provider, cost in cloud_cost.items()}
+
+    # Create a dictionary to hold the result
+    result = {'cloud_count': cloud_count, 'cloud_total_cost': rounded_cloud_cost}
+    return result
+
 
 @app.route('/api/predict', methods=['POST'])
 def predict():
@@ -203,31 +118,14 @@ def predict():
         file.save(file_path)
 
         # Perform analysis using the trained model
-        output_csv_path = predict_using_model(file_path)
-
-        # Read the predicted CSV file content
-        predicted_data = pd.read_csv(output_csv_path)
-
-        # Convert the DataFrame to JSON for the API response
-        predicted_json = predicted_data.to_json(orient='records')
+        data = predict_using_model(file_path)
         
-        # Read and encode the graph file content as base64
-        graph_cost_path = 'graphs/total_costs_side_by_side.png'
-        with open(graph_cost_path, 'rb') as image_file:
-            encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
-            
-        # Read and encode the graph file content as base64
-        pie_before = 'graphs/count_before_movement_pie_chart.png'
-        with open(pie_before, 'rb') as image_file:
-            pie_before_encoded = base64.b64encode(image_file.read()).decode('utf-8')
-            
-        # Read and encode the graph file content as base64
-        pie_before = 'graphs/count_after_movement_pie_chart.png'
-        with open(pie_before, 'rb') as image_file:
-            pie_after_encoded = base64.b64encode(image_file.read()).decode('utf-8')
+        first_page_data=get_count_of_cloud(data)
+        
 
+        # TODO : convert data to json data
         # Send both the generated graphs and predictions as a response
-        return jsonify({'success': True, 'data': predicted_json, 'graph_cost_path': encoded_image,'pie_before':pie_before_encoded,'pie_after':pie_after_encoded})
+        return jsonify({'success': True, 'first_page_data': first_page_data})
 
     else:
         return jsonify({'error': 'Please upload a valid CSV file'})

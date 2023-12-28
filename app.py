@@ -16,6 +16,8 @@ loaded_features = joblib.load('model/model_features.joblib')
 
 def calculate_right_sized(property) -> int:
     property = int(property)
+    if property == 1:
+        return 3
     return property//2 + property//4
 
 
@@ -134,104 +136,37 @@ def get_count_of_cloud(data):
     return result
 
 
-def top_filter_vm_based_on_cloud(data):
-    aws_data = data[data['cloud provider'] == 'AWS'].head(
-        5).to_dict(orient='records')
-    onprem_data = data[data['cloud provider'] ==
-                       'On-prem'].head(5).to_dict(orient='records')
-    gcp_data = data[data['cloud provider'] == 'GCP'].head(
-        5).to_dict(orient='records')
-
-    result = {
-        'AWS': json.loads(json.dumps(aws_data)),
-        'On-prem': json.loads(json.dumps(onprem_data)),
-        'GCP': json.loads(json.dumps(gcp_data)),
-    }
-
-    return result
+def top_filter_vm_based_on_cloud(data, cloud_type):
+    return json.loads(json.dumps(data[data['cloud provider'] == cloud_type].head(5).to_dict(orient='records')))
 
 
 def filter_vm_based_on_cloud(data):
-    aws_data = data[data['cloud provider'] == 'AWS'].to_dict(orient='records')
-    onprem_data = data[data['cloud provider'] ==
-                       'On-prem'].to_dict(orient='records')
-    gcp_data = data[data['cloud provider'] == 'GCP'].to_dict(orient='records')
-
-    result = {
-        'AWS': [],
-        'On-prem': [],
-        'GCP': [],
-    }
-    for _aws in aws_data:
-        if _aws['where to move'] != "No movement required":
-            result['AWS'].append(
-                f'VM id={_aws["id"]} can be moved to {_aws["where to move"]} ')
-
-    for _on_prem in onprem_data:
-        if _on_prem['where to move'] != "No movement required":
-            result['On-prem'].append(
-                f'VM id={_on_prem["id"]} can be moved to {_on_prem["where to move"]} ')
-
-    for _gcp in gcp_data:
-        if _gcp['where to move'] != "No movement required":
-            result['GCP'].append(
-                f'VM id={_gcp["id"]} can be moved to {_gcp["where to move"]} ')
+    result = []
+    for _data in data:
+        if _data['where to move'] != "No movement required":
+            result.append(
+                f'VM id={_data["id"]} can be moved to {_data["where to move"]} ')
 
     return result
 
 
 def right_sizing_related_data(data):
-    aws_data = data[data['cloud provider'] == 'AWS'].to_dict(orient='records')
-    onprem_data = data[data['cloud provider'] ==
-                       'On-prem'].to_dict(orient='records')
-    gcp_data = data[data['cloud provider'] == 'GCP'].to_dict(orient='records')
+    result = []
+    for _data in data:
+        if _data['Predictions'] == "underutilized":
+            if int(_data['Total Ram']) > 1:
+                result.append(
+                    f'VM id={_data["id"]} reduce Ram to {calculate_right_sized(_data["Total Ram"])} ')
 
-    result = {
-        'AWS': [],
-        'On-prem': [],
-        'GCP': [],
-    }
-    for _aws in aws_data:
-        if _aws['Predictions'] == "underutilized":
-            if int(_aws['Total Ram']) > 1:
-                result['AWS'].append(
-                    f'VM id={_aws["id"]} reduce Ram to {calculate_right_sized(_aws["Total Ram"])} ')
+            if int(_data['Total CPU']) > 1:
+                result.append(
+                    f'VM id={_data["id"]} reduce CPU to {calculate_right_sized(_data["Total CPU"])} ')
 
-            if int(_aws['Total CPU']) > 1:
-                result['AWS'].append(
-                    f'VM id={_aws["id"]} reduce CPU to {calculate_right_sized(_aws["Total CPU"])} ')
-
-        if float(_aws['Cpu Utilization']) > 95:
-            result['AWS'].append(
-                f'VM id={_aws["id"]} increase CPU to {calculate_right_sized(_aws["Total CPU"])//2 +int(_aws["Total CPU"])} ')
-
-    for _on_prem in onprem_data:
-        if _on_prem['Predictions'] == "underutilized":
-            if int(_on_prem['Total Ram']) > 1:
-                result['On-prem'].append(
-                    f'VM id={_on_prem["id"]} reduce Ram to {calculate_right_sized(_on_prem["Total Ram"])} ')
-
-            if int(_on_prem['Total CPU']) > 1:
-                result['On-prem'].append(
-                    f'VM id={_on_prem["id"]} reduce CPU to {calculate_right_sized(_on_prem["Total CPU"])} ')
-
-        if float(_aws['Cpu Utilization']) > 95:
-            result['On-prem'].append(
-                f'VM id={_on_prem["id"]} increase CPU to {calculate_right_sized(_on_prem["Total CPU"])//2 +int(_on_prem["Total CPU"])} ')
-
-    for _gcp in gcp_data:
-        if _gcp['Predictions'] == "underutilized":
-            if int(_gcp['Total Ram']) > 1:
-                result['GCP'].append(
-                    f'VM id={_gcp["id"]} reduce Ram to {calculate_right_sized(_gcp["Total Ram"])} ')
-
-            if int(_gcp['Total CPU']) > 1:
-                result['GCP'].append(
-                    f'VM id={_gcp["id"]} reduce CPU to {calculate_right_sized(_gcp["Total CPU"])} ')
-
-        if float(_gcp['Cpu Utilization']) > 95:
-            result['GCP'].append(
-                f'VM id={_gcp["id"]} increase CPU to {calculate_right_sized(_gcp["Total CPU"])//2 +int(_gcp["Total CPU"])} ')
+        if float(_data['Cpu Utilization']) > 94:
+            result.append(
+                f'VM id={_data["id"]} increase CPU to {calculate_right_sized(_data["Total CPU"])//3 +int(_data["Total CPU"])} ')
+            result.append(
+                f'VM id={_data["id"]} increase Ram to {calculate_right_sized(_data["Total Ram"])//3 +int(_data["Total Ram"])} ')
 
     return result
 
@@ -266,10 +201,12 @@ def predict():
 
 def get_saved_predictions(file_path, cloud_type):
     data = pd.read_csv(file_path)
+    filterd_data = data[data['cloud provider']
+                        == cloud_type].to_dict(orient='records')
     second_page_data = {
-        'top_5_filtered_vms_based_on_cloud': top_filter_vm_based_on_cloud(data),
-        'moved_vm_data': filter_vm_based_on_cloud(data),
-        'right_sized_vm': right_sizing_related_data(data),
+        'top_5_filtered_vms_based_on_cloud': top_filter_vm_based_on_cloud(data, cloud_type),
+        'moved_vm_data': filter_vm_based_on_cloud(filterd_data),
+        'right_sized_vm': right_sizing_related_data(filterd_data),
     }
     return second_page_data
 

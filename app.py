@@ -60,17 +60,16 @@ def movement_related_calculation(row):
     move_aws = row[11]
     move_gcp = row[12]
     updated_latency = int(latency) + map_value(cpu_utilization, 0, 100, -20, 20)
-    min_val=min(float(move_onprem),float(move_aws),float(move_gcp))
-    if min_val<0.8:
-        if min_val ==float(move_onprem):
-            return ["On-prem", float(cost)*min_val, int(updated_latency)]
-        elif min_val ==float(move_aws):
-            return ["AWS", float(cost)*min_val, int(updated_latency)]
-        else :
-            return ["GCP", float(cost)*min_val, int(updated_latency)]
-    
-    return ["No movement required", cost, latency]
+    min_val = min(float(move_onprem), float(move_aws), float(move_gcp))
+    if min_val < 0.8:
+        if min_val == float(move_onprem):
+            return ['On-prem', float(cost) * min_val, int(updated_latency)]
+        elif min_val == float(move_aws):
+            return ['AWS', float(cost) * min_val, int(updated_latency)]
+        else:
+            return ['GCP', float(cost) * min_val, int(updated_latency)]
 
+    return ['No movement required', cost, latency]
 
 def predict_using_model(input_csv_path):
     # Load the input CSV file

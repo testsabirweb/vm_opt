@@ -1,12 +1,7 @@
 from flask_cors import CORS
-import seaborn as sns
-import base64
-import os
-import matplotlib.pyplot as plt
 from flask import Flask, request, jsonify
 import pandas as pd
 import joblib
-import io
 import json
 import matplotlib
 matplotlib.use('Agg')
@@ -17,6 +12,11 @@ CORS(app)
 # Load the trained model and features
 loaded_classifier = joblib.load('model/decision_tree_model.joblib')
 loaded_features = joblib.load('model/model_features.joblib')
+
+
+def calculate_right_sized(property) -> int:
+    property = int(property)
+    return property//2 + property//4
 
 
 def map_value(value, from_min, from_max, to_min, to_max):
@@ -180,6 +180,62 @@ def filter_vm_based_on_cloud(data):
     return result
 
 
+def right_sizing_related_data(data):
+    aws_data = data[data['cloud provider'] == 'AWS'].to_dict(orient='records')
+    onprem_data = data[data['cloud provider'] ==
+                       'On-prem'].to_dict(orient='records')
+    gcp_data = data[data['cloud provider'] == 'GCP'].to_dict(orient='records')
+
+    result = {
+        'AWS': [],
+        'On-prem': [],
+        'GCP': [],
+    }
+    for _aws in aws_data:
+        if _aws['Predictions'] == "underutilized":
+            if int(_aws['Total Ram']) > 1:
+                result['AWS'].append(
+                    f'VM id={_aws["id"]} reduce Ram to {calculate_right_sized(_aws["Total Ram"])} ')
+
+            if int(_aws['Total CPU']) > 1:
+                result['AWS'].append(
+                    f'VM id={_aws["id"]} reduce CPU to {calculate_right_sized(_aws["Total CPU"])} ')
+
+        if float(_aws['Cpu Utilization']) > 95:
+            result['AWS'].append(
+                f'VM id={_aws["id"]} increase CPU to {calculate_right_sized(_aws["Total CPU"])//2 +int(_aws["Total CPU"])} ')
+
+    for _on_prem in onprem_data:
+        if _on_prem['Predictions'] == "underutilized":
+            if int(_on_prem['Total Ram']) > 1:
+                result['On-prem'].append(
+                    f'VM id={_on_prem["id"]} reduce Ram to {calculate_right_sized(_on_prem["Total Ram"])} ')
+
+            if int(_on_prem['Total CPU']) > 1:
+                result['On-prem'].append(
+                    f'VM id={_on_prem["id"]} reduce CPU to {calculate_right_sized(_on_prem["Total CPU"])} ')
+
+        if float(_aws['Cpu Utilization']) > 95:
+            result['On-prem'].append(
+                f'VM id={_on_prem["id"]} increase CPU to {calculate_right_sized(_on_prem["Total CPU"])//2 +int(_on_prem["Total CPU"])} ')
+
+    for _gcp in gcp_data:
+        if _gcp['Predictions'] == "underutilized":
+            if int(_gcp['Total Ram']) > 1:
+                result['GCP'].append(
+                    f'VM id={_gcp["id"]} reduce Ram to {calculate_right_sized(_gcp["Total Ram"])} ')
+
+            if int(_gcp['Total CPU']) > 1:
+                result['GCP'].append(
+                    f'VM id={_gcp["id"]} reduce CPU to {calculate_right_sized(_gcp["Total CPU"])} ')
+
+        if float(_gcp['Cpu Utilization']) > 95:
+            result['GCP'].append(
+                f'VM id={_gcp["id"]} increase CPU to {calculate_right_sized(_gcp["Total CPU"])//2 +int(_gcp["Total CPU"])} ')
+
+    return result
+
+
 @app.route('/api/predict', methods=['POST'])
 def predict():
     # Check if a file is provided in the request
@@ -204,8 +260,9 @@ def predict():
         second_page_data["top_5_filtered_vms_based_on_cloud"] = top_filter_vm_based_on_cloud(
             data)
 
-        moved_vm_data = filter_vm_based_on_cloud(data)
-        second_page_data["moved_vm_data"] = moved_vm_data
+        second_page_data["moved_vm_data"] = filter_vm_based_on_cloud(data)
+
+        second_page_data["right_sized_vm"] = right_sizing_related_data(data)
 
         # Send both the generated graphs and predictions as a response
         return jsonify({'success': True,

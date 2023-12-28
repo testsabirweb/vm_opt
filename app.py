@@ -36,21 +36,25 @@ def move_to_various_cloud(row):
     if row[1] == "On-prem":
         return [
             1.0,
-            1.0 + map_value(cpu_utilization % 10, 0, 9, -0.2, 0.2),
-            1.0 + map_value(cpu_utilization % 10, 0, 9, -0.2, 0.2) + map_value(latency % 10, 0, 9, -0.2, 0.2),
+            1.0 + map_value(cpu_utilization % 10, 0, 9, -0.3, 0.3),
+            1.0 + map_value(cpu_utilization % 10, 0, 9, -0.3, 0.3) +
+            map_value(latency % 10, 0, 9, -0.3, 0.3),
         ]
     if row[1] == "AWS":
         return [
-            1.0 + map_value(cpu_utilization % 10, 0, 10, -0.2, 0.2),
+            1.0 + map_value(cpu_utilization % 10, 0, 9, -0.3, 0.3),
             1.0,
-            1.0 + map_value(cpu_utilization % 10, 0, 9, -0.2, 0.2) + map_value(latency % 10, 0, 9, -0.2, 0.2),
+            1.0 + map_value(cpu_utilization % 10, 0, 9, -0.3, 0.3) +
+            map_value(latency % 10, 0, 9, -0.3, 0.3),
         ]
     if row[1] == "GCP":
         return [
-            1.0 + map_value(cpu_utilization % 10, 0, 9, -0.2, 0.2),
-            1.0 + map_value(cpu_utilization % 10, 0, 9, -0.2, 0.2) + map_value(latency % 10, 0, 9, -0.2, 0.2),
+            1.0 + map_value(cpu_utilization % 10, 0, 9, -0.3, 0.3),
+            1.0 + map_value(cpu_utilization % 10, 0, 9, -0.3, 0.3) +
+            map_value(latency % 10, 0, 9, -0.3, 0.3),
             1.0,
         ]
+
 
 def movement_related_calculation(row):
     move_onprem = row[10]
@@ -59,9 +63,10 @@ def movement_related_calculation(row):
     latency = row[6]
     move_aws = row[11]
     move_gcp = row[12]
-    updated_latency = int(latency) + map_value(cpu_utilization, 0, 100, -20, 20)
+    updated_latency = int(latency) + \
+        map_value(cpu_utilization, 0, 100, -20, 20)
     min_val = min(float(move_onprem), float(move_aws), float(move_gcp))
-    if min_val < 0.8:
+    if min_val < 0.84:
         if min_val == float(move_onprem):
             return ['On-prem', float(cost) * min_val, int(updated_latency)]
         elif min_val == float(move_aws):
@@ -70,6 +75,7 @@ def movement_related_calculation(row):
             return ['GCP', float(cost) * min_val, int(updated_latency)]
 
     return ['No movement required', cost, latency]
+
 
 def predict_using_model(input_csv_path):
     # Load the input CSV file
@@ -95,7 +101,7 @@ def predict_using_model(input_csv_path):
                ] = pd.DataFrame(moved_data.tolist(), index=input_data.index)
 
     # Save the datasheet with predictions to a new CSV file
-    output_csv_path = 'datasets/predicted.csv'    
+    output_csv_path = 'datasets/predicted.csv'
     input_data.to_csv(output_csv_path, index=False)
 
     return output_csv_path
@@ -143,6 +149,7 @@ def filter_vm_based_on_cloud(data):
     }
 
     return result
+
 
 @app.route('/api/predict', methods=['POST'])
 def predict():

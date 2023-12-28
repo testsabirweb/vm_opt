@@ -134,7 +134,7 @@ def get_count_of_cloud(data):
     return result
 
 
-def filter_vm_based_on_cloud(data):
+def top_filter_vm_based_on_cloud(data):
     aws_data = data[data['cloud provider'] == 'AWS'].head(
         5).to_dict(orient='records')
     onprem_data = data[data['cloud provider'] ==
@@ -147,6 +147,35 @@ def filter_vm_based_on_cloud(data):
         'On-prem': json.loads(json.dumps(onprem_data)),
         'GCP': json.loads(json.dumps(gcp_data)),
     }
+
+    return result
+
+
+def filter_vm_based_on_cloud(data):
+    aws_data = data[data['cloud provider'] == 'AWS'].to_dict(orient='records')
+    onprem_data = data[data['cloud provider'] ==
+                       'On-prem'].to_dict(orient='records')
+    gcp_data = data[data['cloud provider'] == 'GCP'].to_dict(orient='records')
+
+    result = {
+        'AWS': [],
+        'On-prem': [],
+        'GCP': [],
+    }
+    for _aws in aws_data:
+        if _aws['where to move'] != "No movement required":
+            result['AWS'].append(
+                f'VM id={_aws["id"]} can be moved to {_aws["where to move"]} ')
+
+    for _on_prem in onprem_data:
+        if _on_prem['where to move'] != "No movement required":
+            result['On-prem'].append(
+                f'VM id={_on_prem["id"]} can be moved to {_on_prem["where to move"]} ')
+
+    for _gcp in gcp_data:
+        if _gcp['where to move'] != "No movement required":
+            result['GCP'].append(
+                f'VM id={_gcp["id"]} can be moved to {_gcp["where to move"]} ')
 
     return result
 
@@ -172,10 +201,12 @@ def predict():
         first_page_data = get_count_of_cloud(data)
 
         second_page_data = dict()
-        second_page_data["filtered_vms_based_on_cloud"] = filter_vm_based_on_cloud(
+        second_page_data["top_5_filtered_vms_based_on_cloud"] = top_filter_vm_based_on_cloud(
             data)
 
-        # TODO : convert data to json data
+        moved_vm_data = filter_vm_based_on_cloud(data)
+        second_page_data["moved_vm_data"] = moved_vm_data
+
         # Send both the generated graphs and predictions as a response
         return jsonify({'success': True,
                         'first_page_data': first_page_data,

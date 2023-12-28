@@ -256,22 +256,43 @@ def predict():
 
         first_page_data = get_count_of_cloud(data)
 
-        second_page_data = dict()
-        second_page_data["top_5_filtered_vms_based_on_cloud"] = top_filter_vm_based_on_cloud(
-            data)
-
-        second_page_data["moved_vm_data"] = filter_vm_based_on_cloud(data)
-
-        second_page_data["right_sized_vm"] = right_sizing_related_data(data)
-
         # Send both the generated graphs and predictions as a response
         return jsonify({'success': True,
-                        'first_page_data': first_page_data,
-                        'second_page_data': second_page_data
+                        'first_page_data': first_page_data
                         })
-
     else:
         return jsonify({'error': 'Please upload a valid CSV file'})
+
+
+def get_saved_predictions(file_path, cloud_type):
+    data = pd.read_csv(file_path)
+    second_page_data = {
+        'top_5_filtered_vms_based_on_cloud': top_filter_vm_based_on_cloud(data),
+        'moved_vm_data': filter_vm_based_on_cloud(data),
+        'right_sized_vm': right_sizing_related_data(data),
+    }
+    return second_page_data
+
+
+@app.route('/api/predict/aws', methods=['GET'])
+def get_saved_predictions_aws():
+    file_path = 'datasets/predicted.csv'
+    cloud_type = 'AWS'
+    return jsonify({'success': True, 'cloud_type': cloud_type, 'second_page_data': get_saved_predictions(file_path, cloud_type)})
+
+
+@app.route('/api/predict/on_prem', methods=['GET'])
+def get_saved_predictions_on_prem():
+    file_path = 'datasets/predicted.csv'
+    cloud_type = 'On-prem'
+    return jsonify({'success': True, 'cloud_type': cloud_type, 'second_page_data': get_saved_predictions(file_path, cloud_type)})
+
+
+@app.route('/api/predict/gcp', methods=['GET'])
+def get_saved_predictions_gcp():
+    file_path = 'datasets/predicted.csv'
+    cloud_type = 'GCP'
+    return jsonify({'success': True, 'cloud_type': cloud_type, 'second_page_data': get_saved_predictions(file_path, cloud_type)})
 
 
 if __name__ == '__main__':

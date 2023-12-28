@@ -34,33 +34,41 @@ def move_to_various_cloud(row):
     cpu_utilization = row[5]
     latency = row[6]
     if row[1] == "On-prem":
-        return [1.0, 1.0+map_value(cpu_utilization, 0, 100, 0.1, 0.15), 1.0+map_value(cpu_utilization, 0, 100, 0.15, 0.25)]
+        return [
+            1.0,
+            1.0 + map_value(cpu_utilization % 10, 0, 9, -0.2, 0.2),
+            1.0 + map_value(cpu_utilization % 10, 0, 9, -0.2, 0.2) + map_value(latency % 10, 0, 9, -0.2, 0.2),
+        ]
     if row[1] == "AWS":
-        return [1.0-map_value(cpu_utilization, 0, 100, 0.1, 0.15), 1.0, 1.0+map_value(cpu_utilization, 0, 100, 0.1, 0.15)]
+        return [
+            1.0 + map_value(cpu_utilization % 10, 0, 10, -0.2, 0.2),
+            1.0,
+            1.0 + map_value(cpu_utilization % 10, 0, 9, -0.2, 0.2) + map_value(latency % 10, 0, 9, -0.2, 0.2),
+        ]
     if row[1] == "GCP":
-        return [1.0-map_value(cpu_utilization, 0, 100, 0.1, 0.15), 1.0-map_value(cpu_utilization, 0, 100, 0.1, 0.15)+map_value(latency, 30, 400, -0.08, 0.5), 1.0]
-
+        return [
+            1.0 + map_value(cpu_utilization % 10, 0, 9, -0.2, 0.2),
+            1.0 + map_value(cpu_utilization % 10, 0, 9, -0.2, 0.2) + map_value(latency % 10, 0, 9, -0.2, 0.2),
+            1.0,
+        ]
 
 def movement_related_calculation(row):
     move_onprem = row[10]
     cpu_utilization = row[5]
     cost = row[7]
-    updated_cost = 1
     latency = row[6]
     move_aws = row[11]
     move_gcp = row[12]
-    move_to = "No movement required"
-    if float(move_onprem) < float(move_aws):
-        move_to = "On-prem"
-        updated_cost = float(move_onprem)
-    else:
-        move_to = "AWS"
-        updated_cost = float(move_aws)
-    if row[1] != "On-prem":
-        if updated_cost <= 0.86:
-            updated_latency = int(latency) + \
-                map_value(cpu_utilization, 0, 100, -5, 20)
-            return [move_to, float(cost)*updated_cost, int(updated_latency)]
+    updated_latency = int(latency) + map_value(cpu_utilization, 0, 100, -20, 20)
+    min_val=min(float(move_onprem),float(move_aws),float(move_gcp))
+    if min_val<0.8:
+        if min_val ==float(move_onprem):
+            return ["On-prem", float(cost)*min_val, int(updated_latency)]
+        elif min_val ==float(move_aws):
+            return ["AWS", float(cost)*min_val, int(updated_latency)]
+        else :
+            return ["GCP", float(cost)*min_val, int(updated_latency)]
+    
     return ["No movement required", cost, latency]
 
 

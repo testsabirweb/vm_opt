@@ -1,26 +1,26 @@
 id,cloud provider,Total Ram,Total CPU,Total Disk Space (GB),Cpu Utilization,Network Latency (milliseconds),Cost Per Year ($),Average IOPS,Predictions,move_onprem,move_aws,move_gcp,where to move,Updated Cost,Updated latency
-1,GCP,2,1,8,87.75,131,202.8,881,overutilized,0.856,0.9339999999999999,1.0,On-prem,173.5968,147
-2,On-prem,1,1,8,96.18,77,130.4,824,overutilized,1.0,1.148,1.246,No movement required,130.4,77
-3,On-prem,8,1,8,58.8,198,356.2,1051,underutilized,1.0,1.129,1.209,No movement required,356.2,198
-4,GCP,32,16,16,77.12,67,2032.0,1019,optimal,0.861,0.839,1.0,AWS,1704.848,81
-5,GCP,2,1,8,85.94,57,203.6,827,overutilized,0.857,0.819,1.0,AWS,166.74839999999998,73
-6,GCP,16,8,16,89.15,51,1050.6,853,overutilized,0.855,0.8079999999999999,1.0,AWS,848.8847999999998,68
-7,AWS,4,2,8,59.1,94,324.0,804,underutilized,0.87,1.0,1.13,No movement required,324.0,94
-8,GCP,4,1,8,63.22,50,283.0,770,optimal,0.868,0.819,1.0,AWS,231.777,60
-9,GCP,1,1,8,86.66,60,162.0,827,overutilized,0.857,0.824,1.0,AWS,133.488,76
-10,On-prem,64,16,32,68.96,107,2660.4,1292,optimal,1.0,1.134,1.219,No movement required,2660.4,107
-11,GCP,16,8,16,80.11,109,1060.8,1053,overutilized,0.86,0.904,1.0,On-prem,912.2879999999999,124
-12,AWS,4,2,8,92.22,78,324.6,696,overutilized,0.854,1.0,1.146,On-prem,277.20840000000004,96
-13,On-prem,64,16,32,43.51,287,2659.6,1436,overutilized,1.0,1.1219999999999999,1.194,No movement required,2659.6,287
-14,GCP,32,16,16,55.46,43,2026.2,1299,underutilized,0.872,0.812,1.0,AWS,1645.2744000000002,51
-15,GCP,32,16,16,44.31,76,2023.0,1288,underutilized,0.878,0.87,1.0,No movement required,2023.0,76
-16,GCP,2,1,8,76.26,56,203.2,940,optimal,0.862,0.823,1.0,AWS,167.23359999999997,70
-17,AWS,1,1,8,82.63,41,163.0,649,overutilized,0.859,1.0,1.141,On-prem,140.017,56
-18,AWS,64,16,32,97.66,128,3340.8,1755,overutilized,0.851,1.0,1.149,On-prem,2843.0208000000002,147
-19,AWS,1,1,8,41.58,131,162.8,903,underutilized,0.879,1.0,1.121,No movement required,162.8,131
-20,AWS,8,1,8,84.83,89,444.6,942,overutilized,0.858,1.0,1.142,On-prem,381.46680000000003,105
-21,AWS,16,8,16,75.67,117,1052.2,1090,optimal,0.862,1.0,1.138,No movement required,1052.2,117
-22,GCP,16,8,16,80.76,126,1059.4,843,overutilized,0.86,0.9299999999999999,1.0,On-prem,911.0840000000001,141
-23,GCP,64,16,32,90.1,111,3344.8,1208,overutilized,0.855,0.902,1.0,On-prem,2859.804,128
-24,AWS,64,16,32,45.96,47,3344.0,1337,underutilized,0.877,1.0,1.123,No movement required,3344.0,47
-25,On-prem,64,16,32,59.03,102,2667.6,1213,underutilized,1.0,1.13,1.209,No movement required,2667.6,102
+1,GCP,2,1,8,82.75,131,202.8,881,overutilized,0.922,0.766,1.0,AWS,155.34480000000002,144
+2,On-prem,1,1,8,96.18,77,130.4,824,overutilized,1.0,1.075,1.186,No movement required,130.4,77
+3,On-prem,8,1,8,58.8,198,356.2,1051,underutilized,1.0,1.191,1.347,No movement required,356.2,198
+4,GCP,32,16,16,77.12,67,2032.0,1019,optimal,1.116,1.227,1.0,No movement required,2032.0,67
+5,GCP,2,1,8,85.94,57,203.6,827,overutilized,1.064,1.175,1.0,No movement required,203.6,57
+6,GCP,16,8,16,89.15,51,1050.6,853,overutilized,1.2,1.044,1.0,No movement required,1050.6,51
+7,AWS,4,2,8,59.1,94,324.0,804,underutilized,1.164,1.0,1.178,No movement required,324.0,94
+8,GCP,4,1,8,63.22,50,283.0,770,optimal,0.943,0.7429999999999999,1.0,AWS,210.26899999999998,55
+9,GCP,1,1,8,86.66,60,162.0,827,overutilized,1.096,0.8960000000000001,1.0,No movement required,162.0,60
+10,On-prem,64,16,32,68.96,107,2660.4,1292,optimal,1.0,1.198,1.309,No movement required,2660.4,107
+11,GCP,16,8,16,80.11,109,1060.8,1053,overutilized,0.8049999999999999,1.005,1.0,No movement required,1060.8,109
+12,AWS,4,2,8,92.22,78,324.6,696,overutilized,0.889,1.0,1.055,No movement required,324.6,78
+13,On-prem,64,16,32,43.51,287,2659.6,1436,overutilized,1.0,0.956,1.067,No movement required,2659.6,287
+14,GCP,32,16,16,55.46,43,2026.2,1299,underutilized,1.043,0.976,1.0,No movement required,2026.2,43
+15,GCP,32,16,16,44.31,76,2023.0,1288,underutilized,0.992,1.059,1.0,No movement required,2023.0,76
+16,GCP,2,1,8,76.26,56,203.2,940,optimal,1.078,1.145,1.0,No movement required,203.2,56
+17,AWS,1,1,8,82.63,41,163.0,649,overutilized,0.905,1.0,0.761,GCP,124.043,54
+18,AWS,64,16,32,97.66,128,3340.8,1755,overutilized,1.106,1.0,1.296,No movement required,3340.8,128
+19,AWS,1,1,8,41.58,131,162.8,903,underutilized,0.863,1.0,0.714,GCP,116.2392,127
+20,AWS,8,1,8,84.83,89,444.6,942,overutilized,0.993,1.0,1.2149999999999999,No movement required,444.6,89
+21,AWS,16,8,16,75.67,117,1052.2,1090,optimal,1.027,1.0,1.163,No movement required,1052.2,117
+22,GCP,16,8,16,80.76,126,1059.4,843,overutilized,0.834,0.901,1.0,No movement required,1059.4,126
+23,GCP,64,16,32,90.1,111,3344.8,1208,overutilized,0.804,0.648,1.0,AWS,2167.4304,127
+24,AWS,64,16,32,45.96,47,3344.0,1337,underutilized,1.038,1.0,1.176,No movement required,3344.0,47
+25,On-prem,64,16,32,59.03,102,2667.6,1213,underutilized,1.0,1.2,1.089,No movement required,2667.6,102

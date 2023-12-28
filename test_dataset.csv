@@ -1,5 +1,5 @@
 id,cloud provider,Total Ram,Total CPU,Total Disk Space (GB),Cpu Utilization,Network Latency (milliseconds),Cost Per Year ($),Average IOPS
-1,GCP,2,1,8,87.75,131,202.8,881
+1,GCP,2,1,8,82.75,131,202.8,881
 2,On-prem,1,1,8,96.18,77,130.4,824
 3,On-prem,8,1,8,58.8,198,356.2,1051
 4,GCP,32,16,16,77.12,67,2032,1019

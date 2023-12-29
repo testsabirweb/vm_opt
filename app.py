@@ -111,10 +111,10 @@ def predict_using_model(input_csv_path):
 
     # Add columns for updated RAM and updated CPU
     input_data['Updated Ram'] = input_data.apply(
-        lambda row: calculate_right_sized(row['Total Ram']) if row['Predictions'] == "underutilized" and int(row['Total Ram']) > 1 else row['Total Ram'], axis=1)
+        lambda row: calculate_right_sized(row['Total Ram']) if row['Predictions'] == "underutilized" and int(row['Total Ram']) > 1 else (calculate_right_sized(row['Total CPU']) // 3 + int(row['Total CPU'])) if float(row['Cpu Utilization']) > 94 else row['Total Ram'], axis=1)
 
     input_data['Updated CPU'] = input_data.apply(
-        lambda row: calculate_right_sized(row['Total CPU']) if row['Predictions'] == "underutilized" and int(row['Total CPU']) > 1 else row['Total CPU'], axis=1)
+        lambda row: calculate_right_sized(row['Total CPU']) if row['Predictions'] == "underutilized" and int(row['Total CPU']) > 1 else (calculate_right_sized(row['Total CPU']) // 3 + int(row['Total CPU'])) if float(row['Cpu Utilization']) > 94 else row['Total CPU'], axis=1)
 
     # Save the datasheet with predictions to a new CSV file
     output_csv_path = 'datasets/predicted.csv'
@@ -160,6 +160,18 @@ def filter_vm_based_on_cloud(data):
         if _data['where to move'] != "No movement required":
             result.append(
                 f'VM id={_data["id"]} can be moved to {_data["where to move"]} ')
+
+    return result
+
+
+def filter_vm_based_on_CPU_RAM_changes(file_path, cloud_type):
+    data = pd.read_csv(file_path)
+    filterd_data = data[data['cloud provider']
+                        == cloud_type].to_dict(orient='records')
+    result = []
+    for _data in filterd_data:
+        if _data['Total Ram'] != "Updated Ram":
+            result.append(_data)
 
     return result
 
@@ -329,11 +341,12 @@ def get_saved_predictions_aws_right_size():
     file_path = 'datasets/predicted.csv'
     cloud_type = 'AWS'
     suggestions_list = get_suggestions_list(file_path, cloud_type)
-
+    cloud_right_size_table = filter_vm_based_on_CPU_RAM_changes(
+        file_path, cloud_type)
     if not suggestions_list:
         return jsonify({'error': f'No data found for {cloud_type}'})
 
-    return jsonify({'success': True, 'cloud_type': cloud_type, 'cloud_right_size_table': "TODO", 'suggestions_list': suggestions_list})
+    return jsonify({'success': True, 'cloud_type': cloud_type, 'cloud_right_size_table': cloud_right_size_table, 'suggestions_list': suggestions_list})
 
 
 @app.route('/api/predict/on_prem/right_size', methods=['GET'])
@@ -351,11 +364,12 @@ def get_saved_predictions_on_prem_right_size():
     file_path = 'datasets/predicted.csv'
     cloud_type = 'On-prem'
     suggestions_list = get_suggestions_list(file_path, cloud_type)
-
+    cloud_right_size_table = filter_vm_based_on_CPU_RAM_changes(
+        file_path, cloud_type)
     if not suggestions_list:
         return jsonify({'error': f'No data found for {cloud_type}'})
 
-    return jsonify({'success': True, 'cloud_type': cloud_type, 'cloud_right_size_table': "TODO", 'suggestions_list': suggestions_list})
+    return jsonify({'success': True, 'cloud_type': cloud_type, 'cloud_right_size_table': cloud_right_size_table, 'suggestions_list': suggestions_list})
 
 
 @app.route('/api/predict/gcp/right_size', methods=['GET'])
@@ -373,11 +387,12 @@ def get_saved_predictions_gcp_right_size():
     file_path = 'datasets/predicted.csv'
     cloud_type = 'GCP'
     suggestions_list = get_suggestions_list(file_path, cloud_type)
-
+    cloud_right_size_table = filter_vm_based_on_CPU_RAM_changes(
+        file_path, cloud_type)
     if not suggestions_list:
         return jsonify({'error': f'No data found for {cloud_type}'})
 
-    return jsonify({'success': True, 'cloud_type': cloud_type, 'cloud_right_size_table': "TODO", 'suggestions_list': suggestions_list})
+    return jsonify({'success': True, 'cloud_type': cloud_type, 'cloud_right_size_table': cloud_right_size_table, 'suggestions_list': suggestions_list})
 
 
 if __name__ == '__main__':

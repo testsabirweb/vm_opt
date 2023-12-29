@@ -172,7 +172,7 @@ def filter_vm_based_on_CPU_RAM_changes(file_path, cloud_type):
     for _data in filterd_data:
         if _data['Total Ram'] != _data["Updated Ram"]:
             _data['Updated Cost'] = int(
-                _data['Cost Per Year ($)'])*(int(_data["Updated Ram"])//_data['Total Ram'])
+                _data['Cost Per Year ($)'])*(float(_data["Updated Ram"])/_data['Total Ram'])
             result.append(_data)
 
     return result

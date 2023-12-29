@@ -223,9 +223,20 @@ class PredictResource(Resource):
 api.add_resource(PredictResource, '/api/predict')
 
 
-def get_saved_predictions(file_path, cloud_type):
+def get_cloud_movement_data(file_path, cloud_type):
     data = pd.read_csv(file_path)
     return top_filter_vm_based_on_cloud(data, cloud_type)
+
+
+def get_suggestions_list(file_path, cloud_type):
+    data = pd.read_csv(file_path)
+    filterd_data = data[data['cloud provider']
+                        == cloud_type].to_dict(orient='records')
+    suggestion_list = {
+        'moved_vm_data': filter_vm_based_on_cloud(filterd_data),
+        'right_sized_vm': right_sizing_related_data(filterd_data),
+    }
+    return suggestion_list
 
 
 @app.route('/api/predict/aws', methods=['GET'])
@@ -242,7 +253,7 @@ def get_saved_predictions_aws():
     """
     file_path = 'datasets/predicted.csv'
     cloud_type = 'AWS'
-    predictions_data = get_saved_predictions(file_path, cloud_type)
+    predictions_data = get_cloud_movement_data(file_path, cloud_type)
 
     if not predictions_data:
         return jsonify({'error': f'No data found for {cloud_type}'})
@@ -264,7 +275,7 @@ def get_saved_predictions_on_prem():
     """
     file_path = 'datasets/predicted.csv'
     cloud_type = 'On-prem'
-    predictions_data = get_saved_predictions(file_path, cloud_type)
+    predictions_data = get_cloud_movement_data(file_path, cloud_type)
 
     if not predictions_data:
         return jsonify({'error': f'No data found for {cloud_type}'})
@@ -286,12 +297,78 @@ def get_saved_predictions_gcp():
     """
     file_path = 'datasets/predicted.csv'
     cloud_type = 'GCP'
-    predictions_data = get_saved_predictions(file_path, cloud_type)
+    predictions_data = get_cloud_movement_data(file_path, cloud_type)
 
     if not predictions_data:
         return jsonify({'error': f'No data found for {cloud_type}'})
 
     return jsonify({'success': True, 'cloud_type': cloud_type, 'cloud_movement_table': predictions_data})
+
+
+@app.route('/api/predict/aws/right_size', methods=['GET'])
+def get_saved_predictions_aws_right_size():
+    """
+    Endpoint to get saved predictions for AWS.
+
+    ---
+    responses:
+      200:
+        description: Success response with AWS-specific prediction data.
+      404:
+        description: Error response if data for AWS is not found.
+    """
+    file_path = 'datasets/predicted.csv'
+    cloud_type = 'AWS'
+    suggestions_list = get_suggestions_list(file_path, cloud_type)
+
+    if not suggestions_list:
+        return jsonify({'error': f'No data found for {cloud_type}'})
+
+    return jsonify({'success': True, 'cloud_type': cloud_type, 'cloud_right_size_table': "TODO", 'suggestions_list': suggestions_list})
+
+
+@app.route('/api/predict/on_prem/right_size', methods=['GET'])
+def get_saved_predictions_on_prem_right_size():
+    """
+    Endpoint to get saved predictions for On-prem.
+
+    ---
+    responses:
+      200:
+        description: Success response with On-prem-specific prediction data.
+      404:
+        description: Error response if data for On-prem is not found.
+    """
+    file_path = 'datasets/predicted.csv'
+    cloud_type = 'On-prem'
+    suggestions_list = get_suggestions_list(file_path, cloud_type)
+
+    if not suggestions_list:
+        return jsonify({'error': f'No data found for {cloud_type}'})
+
+    return jsonify({'success': True, 'cloud_type': cloud_type, 'cloud_right_size_table': "TODO", 'suggestions_list': suggestions_list})
+
+
+@app.route('/api/predict/gcp/right_size', methods=['GET'])
+def get_saved_predictions_gcp_right_size():
+    """
+    Endpoint to get saved predictions for GCP.
+
+    ---
+    responses:
+      200:
+        description: Success response with GCP-specific prediction data.
+      404:
+        description: Error response if data for GCP is not found.
+    """
+    file_path = 'datasets/predicted.csv'
+    cloud_type = 'GCP'
+    suggestions_list = get_suggestions_list(file_path, cloud_type)
+
+    if not suggestions_list:
+        return jsonify({'error': f'No data found for {cloud_type}'})
+
+    return jsonify({'success': True, 'cloud_type': cloud_type, 'cloud_right_size_table': "TODO", 'suggestions_list': suggestions_list})
 
 
 if __name__ == '__main__':

@@ -1,9 +1,7 @@
 pandas
-scikit-learn
 matplotlib
 flask
 joblib
 flask_cors
-seaborn
 flask-restful 
 flasgger

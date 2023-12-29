@@ -210,9 +210,21 @@ def get_graph_data(file_path, cloud_type):
     filtered_total_cost_sum = filterd_data_df['Cost Per Year ($)'].sum()
 
     # Calculate the sum of 'Updated Cost' for the filtered data
-    filtered_updated_cost_sum = filterd_data_df['Updated Cost'].sum()
+    filtered_updated_cost_moved = filterd_data_df['Updated Cost'].sum()
 
-    return {'filtered_total_cost_sum': filtered_total_cost_sum, 'filtered_updated_cost_sum': filtered_updated_cost_sum}
+    # Calculate the sum of 'Updated Cost' after Resizing
+    filtered_updated_right_sized_cost = 0
+    for index, _data in filterd_data_df.iterrows():
+        if _data['Total Ram'] != _data['Updated Ram']:
+            _data['Updated Cost'] = int(
+                _data['Cost Per Year ($)']) * (int(_data['Updated Ram']) / int(_data['Total Ram']))
+            filtered_updated_right_sized_cost = filtered_updated_right_sized_cost + \
+                _data['Updated Cost']
+        else:
+            filtered_updated_right_sized_cost = filtered_updated_right_sized_cost + \
+                int(_data['Cost Per Year ($)'])
+
+    return {'filtered_total_cost_sum': filtered_total_cost_sum, 'filtered_updated_cost_moved': filtered_updated_cost_moved, 'filtered_updated_right_sized_cost': filtered_updated_right_sized_cost}
 
 
 class PredictResource(Resource):

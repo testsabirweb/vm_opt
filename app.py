@@ -3,11 +3,16 @@ from flask import Flask, request, jsonify
 import pandas as pd
 import joblib
 import json
+from flask_restful import Api, Resource
+from flasgger import Swagger
 import matplotlib
+
 matplotlib.use('Agg')
 
 app = Flask(__name__)
 CORS(app)
+api = Api(app)
+Swagger(app)
 
 # Load the trained model and features
 loaded_classifier = joblib.load('model/decision_tree_model.joblib')
@@ -18,7 +23,7 @@ def calculate_right_sized(property) -> int:
     property = int(property)
     if property == 1:
         return 3
-    return property//2 + property//4
+    return property // 2 + property // 4
 
 
 def map_value(value, from_min, from_max, to_min, to_max):
@@ -171,65 +176,122 @@ def right_sizing_related_data(data):
     return result
 
 
-@app.route('/api/predict', methods=['POST'])
-def predict():
-    # Check if a file is provided in the request
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file provided'})
+class PredictResource(Resource):
+    def post(self):
+        """
+        Endpoint to perform predictions using the trained model.
 
-    file = request.files['file']
+        ---
+        parameters:
+          - name: file
+            in: formData
+            type: file
+            required: true
+            description: The CSV file for prediction.
+        responses:
+          200:
+            description: Success response with first page data.
+          400:
+            description: Error response if no file provided or invalid file format.
+        """
+        # Check if a file is provided in the request
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'})
 
-    # Check if the file is of CSV format
-    if file and file.filename.endswith('.csv'):
-        # Save the uploaded CSV file
-        file_path = 'uploads/' + file.filename
-        file.save(file_path)
+        file = request.files['file']
 
-        # Perform analysis using the trained model
-        # Read the predicted CSV file content
-        data = pd.read_csv(predict_using_model(file_path))
+        # Check if the file is of CSV format
+        if file and file.filename.endswith('.csv'):
+            # Save the uploaded CSV file
+            file_path = 'uploads/' + file.filename
+            file.save(file_path)
 
-        first_page_data = get_count_of_cloud(data)
+            # Perform analysis using the trained model
+            # Read the predicted CSV file content
+            data = pd.read_csv(predict_using_model(file_path))
 
-        # Send both the generated graphs and predictions as a response
-        return jsonify({'success': True,
-                        'first_page_data': first_page_data
-                        })
-    else:
-        return jsonify({'error': 'Please upload a valid CSV file'})
+            first_page_data = get_count_of_cloud(data)
+
+            # Send both the generated graphs and predictions as a response
+            return jsonify({'success': True,
+                            'first_page_data': first_page_data
+                            })
+        else:
+            return jsonify({'error': 'Please upload a valid CSV file'})
+
+
+api.add_resource(PredictResource, '/api/predict')
 
 
 def get_saved_predictions(file_path, cloud_type):
     data = pd.read_csv(file_path)
-    filterd_data = data[data['cloud provider']
-                        == cloud_type].to_dict(orient='records')
-    second_page_data = {
-        'top_5_filtered_vms_based_on_cloud': top_filter_vm_based_on_cloud(data, cloud_type),
-        'moved_vm_data': filter_vm_based_on_cloud(filterd_data),
-        'right_sized_vm': right_sizing_related_data(filterd_data),
-    }
-    return second_page_data
+    return top_filter_vm_based_on_cloud(data, cloud_type)
 
 
 @app.route('/api/predict/aws', methods=['GET'])
 def get_saved_predictions_aws():
+    """
+    Endpoint to get saved predictions for AWS.
+
+    ---
+    responses:
+      200:
+        description: Success response with AWS-specific prediction data.
+      404:
+        description: Error response if data for AWS is not found.
+    """
     file_path = 'datasets/predicted.csv'
     cloud_type = 'AWS'
-    return jsonify({'success': True, 'cloud_type': cloud_type, 'second_page_data': get_saved_predictions(file_path, cloud_type)})
+    predictions_data = get_saved_predictions(file_path, cloud_type)
+
+    if not predictions_data:
+        return jsonify({'error': f'No data found for {cloud_type}'})
+
+    return jsonify({'success': True, 'cloud_type': cloud_type, 'cloud_movement_table': predictions_data})
 
 
 @app.route('/api/predict/on_prem', methods=['GET'])
 def get_saved_predictions_on_prem():
+    """
+    Endpoint to get saved predictions for On-prem.
+
+    ---
+    responses:
+      200:
+        description: Success response with On-prem-specific prediction data.
+      404:
+        description: Error response if data for On-prem is not found.
+    """
     file_path = 'datasets/predicted.csv'
     cloud_type = 'On-prem'
-    return jsonify({'success': True, 'cloud_type': cloud_type, 'second_page_data': get_saved_predictions(file_path, cloud_type)})
+    predictions_data = get_saved_predictions(file_path, cloud_type)
+
+    if not predictions_data:
+        return jsonify({'error': f'No data found for {cloud_type}'})
+
+    return jsonify({'success': True, 'cloud_type': cloud_type, 'cloud_movement_table': predictions_data})
 
 
 @app.route('/api/predict/gcp', methods=['GET'])
 def get_saved_predictions_gcp():
+    """
+    Endpoint to get saved predictions for GCP.
+
+    ---
+    responses:
+      200:
+        description: Success response with GCP-specific prediction data.
+      404:
+        description: Error response if data for GCP is not found.
+    """
     file_path = 'datasets/predicted.csv'
     cloud_type = 'GCP'
-    return jsonify({'success': True, 'cloud_type': cloud_type, 'second_page_data': get_saved_predictions(file_path, cloud_type)})
+    predictions_data = get_saved_predictions(file_path, cloud_type)
+
+    if not predictions_data:
+        return jsonify({'error': f'No data found for {cloud_type}'})
+
+    return jsonify({'success': True, 'cloud_type': cloud_type, 'cloud_movement_table': predictions_data})
 
 
 if __name__ == '__main__':

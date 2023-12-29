@@ -96,16 +96,25 @@ def predict_using_model(input_csv_path):
 
     # Add predictions to the input datasheet
     input_data['Predictions'] = predictions
+
     # create columns for movement logic
     moved_data = input_data.apply(
         lambda row: move_to_various_cloud(row), axis=1)
     input_data[['move_onprem', 'move_aws', 'move_gcp']] = pd.DataFrame(
         moved_data.tolist(), index=input_data.index)
 
+    # create columns for movement-related calculation
     moved_data = input_data.apply(
         lambda row: movement_related_calculation(row), axis=1)
     input_data[['where to move', 'Updated Cost', 'Updated latency']
                ] = pd.DataFrame(moved_data.tolist(), index=input_data.index)
+
+    # Add columns for updated RAM and updated CPU
+    input_data['Updated Ram'] = input_data.apply(
+        lambda row: calculate_right_sized(row['Total Ram']) if row['Predictions'] == "underutilized" and int(row['Total Ram']) > 1 else row['Total Ram'], axis=1)
+
+    input_data['Updated CPU'] = input_data.apply(
+        lambda row: calculate_right_sized(row['Total CPU']) if row['Predictions'] == "underutilized" and int(row['Total CPU']) > 1 else row['Total CPU'], axis=1)
 
     # Save the datasheet with predictions to a new CSV file
     output_csv_path = 'datasets/predicted.csv'

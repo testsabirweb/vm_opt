@@ -23,3 +23,9 @@ It will start the server at port 3500. To test it just use curl.
 curl -X POST -F "file=@test_dataset.csv" http://localhost:3500/api/predict 
 ```
 (it will return data in json format)
+
+## Access the Swagger UI at
+
+```
+http://localhost:3500/apidocs/
+```

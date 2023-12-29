@@ -111,7 +111,7 @@ def predict_using_model(input_csv_path):
 
     # Add columns for updated RAM and updated CPU
     input_data['Updated Ram'] = input_data.apply(
-        lambda row: calculate_right_sized(row['Total Ram']) if row['Predictions'] == "underutilized" and int(row['Total Ram']) > 1 else (calculate_right_sized(row['Total CPU']) // 3 + int(row['Total CPU'])) if float(row['Cpu Utilization']) > 94 else row['Total Ram'], axis=1)
+        lambda row: calculate_right_sized(row['Total Ram']) if row['Predictions'] == "underutilized" and int(row['Total Ram']) > 1 else (calculate_right_sized(row['Total Ram']) // 3 + int(row['Total Ram'])) if float(row['Cpu Utilization']) > 94 else row['Total Ram'], axis=1)
 
     input_data['Updated CPU'] = input_data.apply(
         lambda row: calculate_right_sized(row['Total CPU']) if row['Predictions'] == "underutilized" and int(row['Total CPU']) > 1 else (calculate_right_sized(row['Total CPU']) // 3 + int(row['Total CPU'])) if float(row['Cpu Utilization']) > 94 else row['Total CPU'], axis=1)

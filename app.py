@@ -197,6 +197,22 @@ def right_sizing_related_data(data):
     return result
 
 
+def get_graph_data(file_path, cloud_type):
+    data = pd.read_csv(file_path)
+    filterd_data = data[data['cloud provider'] == cloud_type]
+
+    # Convert the filtered data to a DataFrame
+    filterd_data_df = pd.DataFrame(filterd_data)
+
+    # Calculate the sum of 'Cost Per Year ($)' for the filtered data
+    filtered_total_cost_sum = filterd_data_df['Cost Per Year ($)'].sum()
+
+    # Calculate the sum of 'Updated Cost' for the filtered data
+    filtered_updated_cost_sum = filterd_data_df['Updated Cost'].sum()
+
+    return {'filtered_total_cost_sum': filtered_total_cost_sum, 'filtered_updated_cost_sum': filtered_updated_cost_sum}
+
+
 class PredictResource(Resource):
     def post(self):
         """
@@ -343,10 +359,12 @@ def get_saved_predictions_aws_right_size():
     suggestions_list = get_suggestions_list(file_path, cloud_type)
     cloud_right_size_table = filter_vm_based_on_CPU_RAM_changes(
         file_path, cloud_type)
+
+    graph_data = get_graph_data(file_path, cloud_type)
     if not suggestions_list:
         return jsonify({'error': f'No data found for {cloud_type}'})
 
-    return jsonify({'success': True, 'cloud_type': cloud_type, 'cloud_right_size_table': cloud_right_size_table, 'suggestions_list': suggestions_list})
+    return jsonify({'success': True, 'cloud_type': cloud_type, 'cloud_right_size_table': cloud_right_size_table, 'suggestions_list': suggestions_list, 'graph_data': graph_data})
 
 
 @app.route('/api/predict/on_prem/right_size', methods=['GET'])
@@ -366,10 +384,12 @@ def get_saved_predictions_on_prem_right_size():
     suggestions_list = get_suggestions_list(file_path, cloud_type)
     cloud_right_size_table = filter_vm_based_on_CPU_RAM_changes(
         file_path, cloud_type)
+
+    graph_data = get_graph_data(file_path, cloud_type)
     if not suggestions_list:
         return jsonify({'error': f'No data found for {cloud_type}'})
 
-    return jsonify({'success': True, 'cloud_type': cloud_type, 'cloud_right_size_table': cloud_right_size_table, 'suggestions_list': suggestions_list})
+    return jsonify({'success': True, 'cloud_type': cloud_type, 'cloud_right_size_table': cloud_right_size_table, 'suggestions_list': suggestions_list, 'graph_data': graph_data})
 
 
 @app.route('/api/predict/gcp/right_size', methods=['GET'])
@@ -389,10 +409,12 @@ def get_saved_predictions_gcp_right_size():
     suggestions_list = get_suggestions_list(file_path, cloud_type)
     cloud_right_size_table = filter_vm_based_on_CPU_RAM_changes(
         file_path, cloud_type)
+
+    graph_data = get_graph_data(file_path, cloud_type)
     if not suggestions_list:
         return jsonify({'error': f'No data found for {cloud_type}'})
 
-    return jsonify({'success': True, 'cloud_type': cloud_type, 'cloud_right_size_table': cloud_right_size_table, 'suggestions_list': suggestions_list})
+    return jsonify({'success': True, 'cloud_type': cloud_type, 'cloud_right_size_table': cloud_right_size_table, 'suggestions_list': suggestions_list, 'graph_data': graph_data})
 
 
 if __name__ == '__main__':

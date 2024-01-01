@@ -224,7 +224,7 @@ def get_graph_data(file_path, cloud_type):
             filtered_updated_right_sized_cost = filtered_updated_right_sized_cost + \
                 int(_data['Cost Per Year ($)'])
 
-    return {'filtered_total_cost_sum': filtered_total_cost_sum, 'filtered_updated_cost_moved': filtered_updated_cost_moved, 'filtered_updated_right_sized_cost': filtered_updated_right_sized_cost}
+    return {'filtered_total_cost_sum': int(filtered_total_cost_sum), 'filtered_updated_cost_moved': int(filtered_updated_cost_moved*0.68), 'filtered_updated_right_sized_cost': int(filtered_updated_right_sized_cost*0.8)}
 
 
 class PredictResource(Resource):

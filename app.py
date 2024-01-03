@@ -6,6 +6,7 @@ import json
 from flask_restful import Api, Resource
 from flasgger import Swagger
 import matplotlib
+import os
 
 matplotlib.use('Agg')
 
@@ -237,39 +238,40 @@ class PredictResource(Resource):
           - name: file
             in: formData
             type: file
-            required: true
+            required: false  # Make the file parameter optional
             description: The CSV file for prediction.
         responses:
           200:
             description: Success response with first page data.
           400:
-            description: Error response if no file provided or invalid file format.
+            description: Error response if the file is not valid.
         """
         # Check if a file is provided in the request
-        if 'file' not in request.files:
-            return jsonify({'error': 'No file provided'})
-
-        file = request.files['file']
-
-        # Check if the file is of CSV format
-        if file and file.filename.endswith('.csv'):
-            # Save the uploaded CSV file
-            file_path = 'uploads/' + file.filename
-            file.save(file_path)
-
-            # Perform analysis using the trained model
-            # Read the predicted CSV file content
-            data = pd.read_csv(predict_using_model(file_path))
-
-            first_page_data = get_count_of_cloud(data)
-
-            # Send both the generated graphs and predictions as a response
-            return jsonify({'success': True,
-                            'first_page_data': first_page_data
-                            })
+        if 'file' not in request.files or not request.files['file']:
+            # No file provided, use the dummy file
+            file_path = os.path.join(os.path.dirname(__file__), 'test_dataset.csv')
         else:
-            return jsonify({'error': 'Please upload a valid CSV file'})
+            file = request.files['file']
 
+            # Check if the file is of CSV format
+            if file and file.filename.endswith('.csv'):
+                # Save the uploaded CSV file
+                file_path = 'uploads/' + file.filename
+                file.save(file_path)
+
+            else:
+                return jsonify({'error': 'Please upload a valid CSV file'})
+
+        # Perform analysis using the trained model
+        # Read the predicted CSV file content
+        data = pd.read_csv(predict_using_model(file_path))
+
+        first_page_data = get_count_of_cloud(data)
+
+        # Send both the generated graphs and predictions as a response
+        return jsonify({'success': True,
+                        'first_page_data': first_page_data
+                        })
 
 api.add_resource(PredictResource, '/api/predict')
 
